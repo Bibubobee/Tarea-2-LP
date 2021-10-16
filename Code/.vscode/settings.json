@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "animal.h": "c",
+        "stdio.h": "c",
+        "stdlib.h": "c"
+    }
+}

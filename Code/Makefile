@@ -1,10 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -g
-simulacion: simulacion.c Animal.c
-	$(CC) $(CFLAGS) -o simulacion simulacion.c Animal.c
-
-Animal.c: Animal.h
-	$(CC) $(CFLAGS )-c Animalh.o Animal.h	
+simulacion: simulacion.c
+	$(CC) $(CFLAGS) -o simulacion.o simulacion.c
 
 .PHONY: clean
 clean:
