@@ -13,6 +13,48 @@ void Colocar(Animal* a){
     Mundo[a->coordenadas[1]][a->coordenadas[0]] = *a;
 }
 
+void TransferirAnimal(Animal* a1, Animal* a2){
+    /**********************************************************************************
+     * Input:   Animal* a1
+     *          Animal* a2
+     * Transfiere los datos del animal a1 al a2, borrando a1 al terminar.
+    ***********************************************************************************/
+    CopiarPunteroVoid(&a1->fuerza, &a1->tipo_fuerza, &a2->fuerza, &a2->tipo_fuerza);
+    CopiarPunteroVoid(&a1->velocidad, &a1->tipo_velocidad, &a2->velocidad, &a2->tipo_velocidad);
+    CopiarPunteroVoid(&a1->resistencia, &a1->tipo_resistencia, &a2->resistencia, &a2->tipo_resistencia);
+
+  
+    a2->coordenadas[0] = a1->coordenadas[0];
+    a2->coordenadas[1] = a1->coordenadas[1];
+    a2->reproduccion = a1->reproduccion;
+    a2->comerHuir = a1->comerHuir;
+    Borrar(a1);
+}
+
+void CopiarPunteroVoid(void** p_1, char* tipo_1, void** p_2, char* tipo_2){
+    /**********************************************************************************
+     * Input:   void* p_1
+     *          char tipo_1
+     *          void* p_2
+     *          char tipo_2
+     * Procedimiento hecho para ordenar algunos codigos que se repetian, copia correctamente
+     * memoria de un puntero void a otro (copia de p_1 a p_2). SE ASUME QUE p_2 NO APUNTABA A NADA.
+    ***********************************************************************************/
+    *tipo_2 = *tipo_1;
+    *p_2 = malloc(sizeof(*p_1));
+    switch(*tipo_2){
+        case 'e':
+            memcpy(*p_2, *p_1, sizeof(int));
+            break;
+        case 'f':
+            memcpy(*p_2, *p_1, sizeof(float));
+            break;
+        case 'c':
+            memcpy(*p_2, *p_1, sizeof(char));
+            break;
+    }
+}
+
 /*********************** Funciones pensadas para trabajar los eventos con el aux_mundo* *********************************/
 void MasDe2Animales(Animal* arr, int cant){
     /**********************************************************************************
@@ -24,19 +66,21 @@ void MasDe2Animales(Animal* arr, int cant){
     Animal* m_1 = &arr[0];
     Animal* m_2 = &arr[1];
     for(int i = 2; i < cant; i++){
-        int fuer_1 = (m_1->tipo_fuerza == 'c')? atoi((char*)m_1->fuerza)/4 : *(int*)m_1->fuerza;
-        int fuer_2 = (m_2->tipo_fuerza == 'c')? atoi((char*)m_2->fuerza)/4 : *(int*)m_2->fuerza;
+        int fuer_1 = TraductorValores(m_1->fuerza, m_1->tipo_fuerza);
+        int fuer_2 = TraductorValores(m_2->fuerza, m_2->tipo_fuerza);
         Animal* a = &arr[i];
-        int fuer_a = (a->tipo_fuerza == 'c')? atoi((char*)a->fuerza)/4 : *(int*)a->fuerza;
+        int fuer_a = TraductorValores(a->fuerza, a->tipo_fuerza);
         if(fuer_a > fuer_1){
             Borrar(m_1);
-            *m_1 = *a;
+            TransferirAnimal(a, m_1);
         }
         else if (fuer_a > fuer_2){
             Borrar(m_2);
-            *m_2 = *a;
+            TransferirAnimal(a, m_2);
         }
-        Borrar(a); //Creo que ahi deberia está.
+        else{
+            Borrar(a);
+        }
     }
 }
 
@@ -51,7 +95,7 @@ void MoverDeCasillaOcupada(Animal* a){
         if((aux_mundo[nueva_coord[1]][nueva_coord[0]][0]).fuerza != NULL){
             a->coordenadas[0] = nueva_coord[0];
             a->coordenadas[1] = nueva_coord[1];
-            (aux_mundo[nueva_coord[1]][nueva_coord[0]][0]) = *a;
+            TransferirAnimal(a, &aux_mundo[nueva_coord[1]][nueva_coord[0]][0]); //ANDA FALLANDO AQUI ALGO.
             return;
         }
     }
@@ -75,11 +119,11 @@ void PasaTurno(){
                 a->coordenadas[1] = (a->coordenadas[1] + dir[random][1]) % 1000;
 
                 for(int k = 0; k < 4; k++){
-                    if(aux_mundo[a->coordenadas[1]][a->coordenadas[0]][k].fuerza != NULL){
-                        aux_mundo[i][j][k] = *a;
+                    if(aux_mundo[a->coordenadas[1]][a->coordenadas[0]][k].fuerza == NULL){
+                        TransferirAnimal(a, &aux_mundo[a->coordenadas[1]][a->coordenadas[0]][k]);
+                        break;
                     }
                 }
-                Borrar(&(Mundo[i][j])); //Hacer como que se movió el animal
             }
         }
     }
@@ -89,7 +133,7 @@ void PasaTurno(){
             int contador_a = 0;
             for(int k = 0; k < 4; k++){ //Cuenta cuantos animales están en una casilla.
                 Animal* a = &(aux_mundo[i][j][k]);
-                if(aux_mundo[a->coordenadas[1]][a->coordenadas[0]][k].fuerza != NULL){
+                if(a->fuerza != NULL){
                     contador_a += 1;
                 }
                 else{
@@ -111,8 +155,12 @@ void PasaTurno(){
     //Retorno a la matriz del Mundo real.
     for(int i = 0; i < 1000; i++){
         for(int j = 0; j < 1000; j++){
-            Mundo[i][j] = aux_mundo[i][j][0];
-            Borrar(&(aux_mundo[i][j][0]));
+            for(int k = 0; k < 4; k++){
+                if(aux_mundo[i][j][k].fuerza != NULL){
+                    TransferirAnimal(&aux_mundo[i][j][k], &Mundo[i][j]);
+                    break;
+                }
+            }
         }
     }
 }

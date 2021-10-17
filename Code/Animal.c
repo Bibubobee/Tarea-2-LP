@@ -2,6 +2,8 @@
 #define ANIMAL_C
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <math.h>
 #include "Animal.h"
 #include "Mundo.h"
 
@@ -89,14 +91,39 @@ void CrearTransimperativer(Animal* a ){
     }
 }
 
+int TraductorValores(void* val, char tipo){
+    if(tipo == 'e'){
+        return *(int*)val;
+    }
+    else if(tipo == 'f'){
+        return roundf(*(float*)val);
+    }
+    else if(tipo == 'c'){
+        return atoi((char*)val) / 4;  
+    }
+    return -1;
+}
+
 void Borrar (Animal* a ){
     /**********************************************************************************
      * Input:   Animal* a
      * Borra un animal por referencia.
     ***********************************************************************************/
-    free(a->fuerza);
-    free(a->velocidad);
-    free(a->resistencia);
+    if(a->fuerza != NULL){
+        free(a->fuerza);
+        a->fuerza = NULL;
+        free(a->velocidad);
+        a->velocidad = NULL;
+        free(a->resistencia);
+        a->resistencia = NULL;
+        a->tipo_fuerza = '\0';
+        a->tipo_resistencia = '\0';
+        a->tipo_velocidad = '\0';
+        a->coordenadas[0] = -1;
+        a->coordenadas[1] = -1;
+        a->reproduccion = NULL;
+        a->comerHuir = NULL;
+    }
 }
 
 void MostrarAnimal (Animal* a ) {
@@ -104,6 +131,9 @@ void MostrarAnimal (Animal* a ) {
      * Input:   Animal* a
      * Imprime en consola la Fuerza, Velocidad, Resistencia y coordenadas del animal.
     ***********************************************************************************/
+    if(a->fuerza == NULL){
+        return;
+    }
     char tipos[3] = {a->tipo_fuerza, a->tipo_velocidad, a->tipo_resistencia};
     void* valores[3] = {a->fuerza, a->velocidad, a->resistencia};
     char* nombres[3] = {"Fuerza", "Velocidad", "Resistencia"};
@@ -122,7 +152,25 @@ void MostrarAnimal (Animal* a ) {
                 break;
         }
     }
-    printf("Coordenadas: (%d,%d)\n", a->coordenadas[1], a->coordenadas[0]);
+    if(a->reproduccion == &ReproduccionSimple){
+        printf("Funcion Reproducción: ReproducionSimple\n");
+    }
+    else if (a->reproduccion == &ReproduccionCruzada){
+        printf("Funcion Reproduccion: ReproduccionCruzada\n");
+    }
+
+    if(a->comerHuir == &ComerSiempre){
+        printf("Funcion Comer O Huir: ComerSiempre\n");
+    }
+    else if(a->comerHuir == &HuirSiempre){
+        printf("Funcion Comer O Huir: HuirSiempre\n");
+    }
+    else if(a->comerHuir == &ComerAleatorio){
+        printf("Funcion Comer O Huir: ComerAleatorio\n");
+    }
+    
+    printf("Coordenadas: (%d,%d)\n", a->coordenadas[0], a->coordenadas[1]);
+    printf("\n");
 }
 
 void Reproducir (Animal* a1 , Animal* a2 , Animal* hijo ) {
@@ -134,13 +182,14 @@ void Reproducir (Animal* a1 , Animal* a2 , Animal* hijo ) {
      * Ademas imprime por pantalla cual animal se eligió.
     ***********************************************************************************/
     int random = rand() % 2;
+    printf("\nSe uso la funcion Reproducir de:\n");
     if(random == 0){
-        a1->reproduccion(a1,a2,hijo);
         MostrarAnimal(a1);
+        a1->reproduccion(a1,a2,hijo);
     }
     else{
-        a2->reproduccion(a2,a1,hijo);
         MostrarAnimal(a2);
+        a2->reproduccion(a2,a1,hijo);
     }
 }
 
@@ -152,10 +201,13 @@ void ComerOHuir (Animal* a1 , Animal * a2 ) {
      * fue.
     ***********************************************************************************/
     int random = rand() % 2;
+    printf("\nSe uso la funcion ComerHuir de:\n");
     if(random == 0){
+        MostrarAnimal(a1);
         a1->comerHuir(a1,a2);
     }
     else{
+        MostrarAnimal(a2);
         a2->comerHuir(a2,a1);
     }
 }
@@ -168,23 +220,16 @@ int Comparar (Animal* a1 , Animal * a2 ) {
      * más comparaciones, la funcion retorna 0 si el animal a1 gana, 1 en caso contrario.
     ***********************************************************************************/
     int contador = 0;
-    int fuerza_1 = (a1->tipo_fuerza == 'c')? atoi((char*)a1->fuerza)/4 : *(int*)a1->fuerza;
-    int fuerza_2 = (a2->tipo_fuerza == 'c')? atoi((char*)a2->fuerza)/4 : *(int*)a2->fuerza;
+    int fuerza_1 = TraductorValores(a1->fuerza, a1->tipo_fuerza);
+    int fuerza_2 = TraductorValores(a2->fuerza, a2->tipo_fuerza);
     contador = fuerza_1 > fuerza_2 ? contador + 1 : contador - 1;
-    int vel_1 = (a1->tipo_velocidad == 'c')? atoi((char*)a1->velocidad)/4 : *(int*)a1->velocidad;
-    int vel_2 = (a2->tipo_velocidad == 'c')? atoi((char*)a2->velocidad)/4 : *(int*)a2->velocidad;
+    int vel_1 = TraductorValores(a1->velocidad, a1->tipo_velocidad);
+    int vel_2 = TraductorValores(a2->velocidad, a2->tipo_velocidad);
     contador = (vel_1 > vel_2) ? contador + 1 : contador - 1;
-    if(contador > 1){ //Optimizacion es mi pasion LOL (jk)
-        return 0;
-    }
-    else if (contador < -1)
-    {
-        return 1;
-    }
-    int res_1 = (a1->tipo_resistencia == 'c')? atoi((char*)a1->resistencia)/4 : *(int*)a1->resistencia;
-    int res_2 = (a2->tipo_resistencia == 'c')? atoi((char*)a2->resistencia)/4 : *(int*)a2->resistencia;
+    int res_1 = TraductorValores(a1->resistencia, a1->tipo_resistencia);
+    int res_2 = TraductorValores(a2->resistencia, a2->tipo_resistencia);
     contador = (res_1 > res_2) ? contador + 1 : contador - 1;
-    return contador > 0;
+    return contador <= 0;
 }
 
 void BorrarMundo (Animal** Mundo ) {
@@ -210,9 +255,7 @@ void MostrarMundo (Animal** Mundo ) {
     ***********************************************************************************/
     for (int x = 0; x < 1000; x++){
         for(int y = 0; y < 1000; y++){
-            if((Mundo[x][y]).fuerza != NULL){
-                MostrarAnimal(&(Mundo[x][y]));
-            }
+            MostrarAnimal(&(Mundo[x][y]));
         }
     }
 }
@@ -226,19 +269,25 @@ void ReproduccionSimple (Animal* a1 , Animal* a2 , Animal* hijo ) {
     ***********************************************************************************/
     int resultado = Comparar(a1, a2);
     if(!resultado){
-        hijo->fuerza = malloc(sizeof(a1->fuerza));
-        hijo->velocidad = malloc(sizeof(a1->velocidad));
-        hijo->resistencia = malloc(sizeof(a1->resistencia));
-        *hijo = *a1;
+        CopiarPunteroVoid(&a1->fuerza, &a1->tipo_fuerza, &hijo->fuerza, &hijo->tipo_fuerza);
+        CopiarPunteroVoid(&a1->velocidad, &a1->tipo_velocidad, &hijo->velocidad, &hijo->tipo_velocidad);
+        CopiarPunteroVoid(&a1->resistencia, &a1->tipo_resistencia, &hijo->resistencia, &hijo->tipo_resistencia);
+      
+        hijo->coordenadas[0] = a1->coordenadas[0];
+        hijo->coordenadas[1] = a1->coordenadas[1];
+        hijo->reproduccion = a1->reproduccion;
+        hijo->comerHuir = a1->comerHuir;   
     }
     else{
-        hijo->fuerza = malloc(sizeof(a2->fuerza));
-        hijo->velocidad = malloc(sizeof(a2->velocidad));
-        hijo->resistencia = malloc(sizeof(a2->resistencia));
-        *hijo = *a2;
+        CopiarPunteroVoid(&a2->fuerza, &a2->tipo_fuerza, &hijo->fuerza, &hijo->tipo_fuerza);
+        CopiarPunteroVoid(&a2->velocidad, &a2->tipo_velocidad, &hijo->velocidad, &hijo->tipo_velocidad);
+        CopiarPunteroVoid(&a2->resistencia, &a2->tipo_resistencia, &hijo->resistencia, &hijo->tipo_resistencia);
+      
+        hijo->coordenadas[0] = a2->coordenadas[0];
+        hijo->coordenadas[1] = a2->coordenadas[1];
+        hijo->reproduccion = a2->reproduccion;
+        hijo->comerHuir = a2->comerHuir;   
     }
-    printf("Reproduccion Simple de:\n");
-    MostrarAnimal(a1);
     return;
 }
 void ReproduccionCruzada (Animal* a1 , Animal* a2 , Animal* hijo ) {
@@ -247,41 +296,29 @@ void ReproduccionCruzada (Animal* a1 , Animal* a2 , Animal* hijo ) {
      *          Animal* a2
      *          Animal* hijo
      * Compara a1 con a2, le entrega al hijo la fuerza, velocidad y funcion reproduccion
-     * del ganador y la reproduccion y funcion comerHuir del perdedor.
+     * del ganador y la resistencia y funcion comerHuir del perdedor.
     ***********************************************************************************/
     int resultado = Comparar(a1,a2);
     if(!resultado){
-        hijo->fuerza = malloc(sizeof(a1->fuerza));
-        hijo->velocidad = malloc(sizeof(a1->velocidad));
-        hijo->resistencia = malloc(sizeof(a2->resistencia));
-        *hijo = *a1;
-        hijo->comerHuir = a2->comerHuir;
-        switch(a2->tipo_resistencia){
-            case 'e':
-                *(int*)hijo->resistencia = *(int*)a2->resistencia;
-            case 'f':
-                *(float*)hijo->resistencia = *(float*)a2->resistencia;
-            case 'c':
-                *(char*)hijo->resistencia = *(char*)a2->resistencia;
-        }
+        CopiarPunteroVoid(&a1->fuerza, &a1->tipo_fuerza, &hijo->fuerza, &hijo->tipo_fuerza);
+        CopiarPunteroVoid(&a1->velocidad, &a1->tipo_velocidad, &hijo->velocidad, &hijo->tipo_velocidad);
+        CopiarPunteroVoid(&a2->resistencia, &a2->tipo_resistencia, &hijo->resistencia, &hijo->tipo_resistencia);
+      
+        hijo->coordenadas[0] = a1->coordenadas[0];
+        hijo->coordenadas[1] = a1->coordenadas[1];
+        hijo->reproduccion = a1->reproduccion;
+        hijo->comerHuir = a2->comerHuir;       
     }
     else{
-        hijo->fuerza = malloc(sizeof(a2->fuerza));
-        hijo->velocidad = malloc(sizeof(a2->velocidad));
-        hijo->resistencia = malloc(sizeof(a1->resistencia));
-        *hijo = *a2;
+        CopiarPunteroVoid(&a2->fuerza, &a2->tipo_fuerza, &hijo->fuerza, &hijo->tipo_fuerza);
+        CopiarPunteroVoid(&a2->velocidad, &a2->tipo_velocidad, &hijo->velocidad, &hijo->tipo_velocidad);
+        CopiarPunteroVoid(&a1->resistencia, &a1->tipo_resistencia, &hijo->resistencia, &hijo->tipo_resistencia);
+      
+        hijo->coordenadas[0] = a2->coordenadas[0];
+        hijo->coordenadas[1] = a2->coordenadas[1];
+        hijo->reproduccion = a2->reproduccion;
         hijo->comerHuir = a1->comerHuir;
-        switch(a1->tipo_resistencia){
-            case 'e':
-                *(int*)hijo->resistencia = *(int*)a1->resistencia;
-            case 'f':
-                *(float*)hijo->resistencia = *(float*)a1->resistencia;
-            case 'c':
-                *(char*)hijo->resistencia = *(char*)a1->resistencia;
-        }
     }
-    printf("Reproduccion Cruzada de:\n"); //METE TODO ESTO EN MOSTRAR ANIMAL
-    MostrarAnimal(a1);
 }
 
 void ComerSiempre(Animal* a1 , Animal * a2 ) {
@@ -290,8 +327,8 @@ void ComerSiempre(Animal* a1 , Animal * a2 ) {
      *          Animal* a2
      * Compara la fuerza de a1 con la resistencia de a2, si gana a1, a2 muere y viceversa.
     ***********************************************************************************/
-    int fuerza_1 = (a1->tipo_fuerza == 'c')? atoi((char*)a1->fuerza)/4 : *(int*)a1->fuerza;
-    int resistencia_2 = (a2->tipo_resistencia == 'c')? atoi((char*)a2->resistencia)/4 : *(int*)a2->resistencia;
+    int fuerza_1 = TraductorValores(a1->fuerza, a1->tipo_fuerza);
+    int resistencia_2 = TraductorValores(a2->resistencia, a2->tipo_resistencia);
     int booleano = fuerza_1 > resistencia_2;
     if(booleano){
         Borrar(a2);
@@ -299,8 +336,6 @@ void ComerSiempre(Animal* a1 , Animal * a2 ) {
     else{
         Borrar(a1);
     }
-    printf("Comer Siempre de:\n");
-    MostrarAnimal(a1);
 }
 
 void HuirSiempre (Animal* a1 , Animal * a2) {
@@ -310,8 +345,8 @@ void HuirSiempre (Animal* a1 , Animal * a2) {
      * Compara las velocidades de a1 y a2, si gana a1 se mueve a una casilla 
      * colindante, en el caso contrario a1 muere.
     ***********************************************************************************/
-    int vel_1 = (a1->tipo_velocidad == 'c')? atoi((char*)a1->velocidad)/4 : *(int*)a1->velocidad;
-    int vel_2 = (a2->tipo_velocidad == 'c')? atoi((char*)a2->velocidad)/4 : *(int*)a2->velocidad;
+    int vel_1 = TraductorValores(a1->velocidad, a1->tipo_velocidad);
+    int vel_2 = TraductorValores(a2->velocidad, a2->tipo_velocidad);
     int booleano = vel_1 > vel_2;
     if(booleano){
         MoverDeCasillaOcupada(a1);
@@ -319,8 +354,6 @@ void HuirSiempre (Animal* a1 , Animal * a2) {
     else{
         Borrar(a1);
     }
-    printf("Huir Siempre de:\n");
-    MostrarAnimal(a1);
 }
 void ComerAleatorio (Animal* a1 , Animal * a2 ) {
     /**********************************************************************************
@@ -334,24 +367,24 @@ void ComerAleatorio (Animal* a1 , Animal * a2 ) {
     int valor_1, valor_2;
     switch(atributo_1){
         case 0:
-            valor_1 = (a1->tipo_fuerza == 'c')? atoi((char*)a1->fuerza)/4 : *(int*)a1->fuerza;
+            valor_1 = TraductorValores(a1->fuerza, a1->tipo_fuerza);
             break;
         case 1:
-            valor_1 = (a1->tipo_velocidad == 'c')? atoi((char*)a1->velocidad)/4 : *(int*)a1->velocidad;
+            valor_1 = TraductorValores(a1->velocidad, a1->tipo_velocidad);
             break;
         case 2:
-            valor_1 = (a1->tipo_resistencia == 'c')? atoi((char*)a1->resistencia)/4 : *(int*)a1->resistencia;
+            valor_1 = TraductorValores(a1->resistencia, a1->tipo_resistencia);
             break;    
     }
     switch(atributo_2){
         case 0:
-            valor_2 = (a2->tipo_fuerza == 'c')? atoi((char*)a2->fuerza)/4 : *(int*)a2->fuerza;
+            valor_2 = TraductorValores(a2->fuerza, a2->tipo_fuerza);
             break;
         case 1:
-            valor_2 = (a2->tipo_velocidad == 'c')? atoi((char*)a2->velocidad)/4 : *(int*)a2->velocidad;
+            valor_2 = TraductorValores(a2->velocidad, a2->tipo_velocidad);
             break;
         case 2:
-            valor_2 = (a2->tipo_resistencia == 'c')? atoi((char*)a2->resistencia)/4 : *(int*)a2->resistencia;
+            valor_2 = TraductorValores(a2->resistencia, a2->tipo_resistencia);
             break;    
     }
 
@@ -361,7 +394,5 @@ void ComerAleatorio (Animal* a1 , Animal * a2 ) {
     else{
         Borrar(a1);
     }
-    printf("Comer Aleatorio de:\n");
-    MostrarAnimal(a1);
 }
 #endif

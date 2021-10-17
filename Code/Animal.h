@@ -14,6 +14,7 @@ typedef struct Animal{
                         //Al colocarse en el Mundo se ponen como (y, x)
 } Animal;
 
+int TraductorValores (void* val, char tipo) ; //Funcion auxiliar, queria dejar mas ordenado eso.
 void CrearTransimperativer (Animal* a ) ;
 void Borrar (Animal* a ) ;
 void MostrarAnimal (Animal* a ) ;
