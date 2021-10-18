@@ -1,10 +1,8 @@
-#ifndef SIMULACION_C
-#define SIMULACION_C
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "Animal.c"
-#include "Mundo.c"
+#include "Animal.h"
+#include "Mundo.h"
 
 int main(void){
     /**********************************************************************************
@@ -28,8 +26,10 @@ int main(void){
         }
     }
     /***********************************************************************************************/
-    /****************Si quieren hacer casos controlados pueden crear como en este ejemplo los animales*************************/
-    Animal ani_1;
+    /****************Si quieren hacer casos controlados pueden crear como en este ejemplo los animales.*************************/
+    /*********Tambien pueden colocarlos en posiciones dentro de aux_mundo si quieren probar algo ***************
+    ************************en especial, pero deben hacerlo a mano, no con Colocar().******************************************/
+    /*Animal ani_1;
     Animal ani_2;
     Animal ani_3;
     ani_1.tipo_fuerza = 'e';
@@ -76,7 +76,7 @@ int main(void){
 
     Colocar(&ani_1);
     Colocar(&ani_2);
-    Colocar(&ani_3);
+    Colocar(&ani_3);*/
     /*************************************************************************************************************/
 
     int seguir_juego = 1;
@@ -111,4 +111,3 @@ int main(void){
     }
     free(aux_mundo);
 }
-#endif

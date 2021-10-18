@@ -1,10 +1,9 @@
-#ifndef ANIMAL_C
-#define ANIMAL_C
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include "Animal.h"
 #include "Mundo.h"
+
 
 void CrearTransimperativer(Animal* a ){
     /**********************************************************************************
@@ -409,4 +408,3 @@ void ComerAleatorio (Animal* a1 , Animal * a2 ) {
         Borrar(a1);
     }
 }
-#endif

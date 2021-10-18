@@ -19,7 +19,7 @@ void CrearTransimperativer (Animal* a ) ;
 void Borrar (Animal* a ) ;
 void MostrarAnimal (Animal* a ) ;
 void Reproducir (Animal* a1 , Animal* a2 , Animal* hijo ) ;
-void Combatir (Animal* a1 , Animal * a2 ) ;
+void ComerOHuir (Animal* a1 , Animal * a2 ) ;
 int Comparar (Animal* a1 , Animal * a2 ) ;
 void BorrarMundo (Animal** Mundo ) ;
 void MostrarMundo (Animal** Mundo ) ;
@@ -28,5 +28,4 @@ void ReproduccionCruzada (Animal* a1 , Animal* a2 , Animal* hijo ) ;
 void ComerSiempre (Animal* a1 , Animal * a2 ) ;
 void HuirSiempre (Animal* a1 , Animal * a2) ;
 void ComerAleatorio (Animal* a1 , Animal * a2 ) ;
-
 #endif

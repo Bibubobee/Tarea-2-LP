@@ -2,9 +2,9 @@ NOMBRE :: GABRIEL SEBASTIÁN ORTIZ ÁNGEL
 ROL    :: 202073535-2
 
 Detalles de Compilacion:
-Para compilar el programa utilice el comando 'make simulacion'
-en la consola, y para correrlo use './simulacion.o'. Además para
-testeos con Valgrind se usó 'valgrind --leak-check=yes ./simulacion.o'
+Para compilar el programa utilice el comando 'make exec'
+en la consola, y para correrlo use './exec'. Además para
+testeos con Valgrind se usó 'valgrind --leak-check=yes ./exec'
 
 Comentarios sobre el código:
 Se agregó el parametro "coordenadas" al struct para obtener las coordenadas

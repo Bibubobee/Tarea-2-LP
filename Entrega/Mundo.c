@@ -1,11 +1,11 @@
-#ifndef MUNDO_C
-#define MUNDO_C
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
-#include "Mundo.h"
 #include "Animal.h"
+#include "Mundo.h"
+
+int dir[4][2] = {{999,0}, {0,999}, {1,0}, {0,1}};
 
 void Colocar(Animal* a){
     /**********************************************************************************
@@ -192,4 +192,3 @@ void PasaTurno(){
         }
     }
 }
-#endif
